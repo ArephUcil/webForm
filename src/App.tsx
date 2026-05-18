@@ -74,15 +74,19 @@ function App() {
       });
 
       if (!response.ok) {
-          let errorBody: any = null;
-          try {
-            errorBody = await response.json();
-          } catch {
-            const text = await response.text();
-            errorBody = text || null;
-          }
-          const msg = (errorBody && (errorBody.message || errorBody)) || response.statusText || 'Failed to submit data';
-          throw new Error(msg as string);
+            let errorBody: any = null;
+            const cloned = response.clone();
+            try {
+              errorBody = await cloned.json();
+            } catch {
+              try {
+                errorBody = await response.text();
+              } catch {
+                errorBody = null;
+              }
+            }
+            const msg = (errorBody && (errorBody.message || errorBody)) || response.statusText || 'Failed to submit data';
+            throw new Error(msg as string);
       }
 
       setStatusMessage('Data uploaded to Google Sheets successfully.');
