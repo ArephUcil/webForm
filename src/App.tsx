@@ -74,8 +74,15 @@ function App() {
       });
 
       if (!response.ok) {
-        const errorBody = await response.json();
-        throw new Error(errorBody?.message || 'Failed to submit data');
+          let errorBody: any = null;
+          try {
+            errorBody = await response.json();
+          } catch {
+            const text = await response.text();
+            errorBody = text || null;
+          }
+          const msg = (errorBody && (errorBody.message || errorBody)) || response.statusText || 'Failed to submit data';
+          throw new Error(msg as string);
       }
 
       setStatusMessage('Data uploaded to Google Sheets successfully.');
