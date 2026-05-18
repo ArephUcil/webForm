@@ -7,11 +7,16 @@ export default async function handler(req: any, res: any) {
   }
 
   if (!GOOGLE_SHEETS_WEBHOOK_URL) {
-    return res.status(500).json({ message: 'Missing GOOGLE_SHEETS_WEBHOOK_URL environment variable.' });
+    return res.status(500).json({ 
+      message: 'Missing GOOGLE_SHEETS_WEBHOOK_URL environment variable. Please set it in Vercel dashboard.',
+      details: 'No webhook URL configured'
+    });
   }
 
   try {
     const payload = req.body;
+    console.log('Forwarding to Google Sheets:', { url: GOOGLE_SHEETS_WEBHOOK_URL, payloadSize: JSON.stringify(payload).length });
+    
     const googleRes = await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -20,11 +25,23 @@ export default async function handler(req: any, res: any) {
 
     if (!googleRes.ok) {
       const text = await googleRes.text();
-      return res.status(502).json({ message: 'Google Sheets webhook error', details: text });
+      console.error('Google Sheets webhook failed:', { status: googleRes.status, body: text });
+      return res.status(502).json({ 
+        message: 'Google Sheets webhook error', 
+        details: text,
+        webhookStatus: googleRes.status
+      });
     }
 
+    const successBody = await googleRes.text();
+    console.log('Google Sheets webhook success:', successBody);
+    
     return res.status(200).json({ success: true });
   } catch (error: any) {
-    return res.status(500).json({ message: error?.message ?? 'Unexpected server error.' });
+    console.error('Submit handler error:', error);
+    return res.status(500).json({ 
+      message: error?.message ?? 'Unexpected server error.',
+      errorType: error?.constructor?.name
+    });
   }
 }
