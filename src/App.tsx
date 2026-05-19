@@ -35,7 +35,10 @@ function App() {
   const [statusMessage, setStatusMessage] = useState('');
 
   const handleAddMember = () => {
-    setFamilyMembers((current) => [...current, defaultMember(current.length + 1)]);
+    setFamilyMembers((current) => {
+      const maxId = current.length > 0 ? Math.max(...current.map(m => m.id)) : 0;
+      return [...current, defaultMember(maxId + 1)];
+    });
   };
 
   const handleRemoveMember = (id: number) => {

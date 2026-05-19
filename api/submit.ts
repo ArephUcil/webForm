@@ -16,8 +16,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const payload = req.body;
-    console.log('Forwarding to Google Sheets:', { url: GOOGLE_SHEETS_WEBHOOK_URL, payloadSize: JSON.stringify(payload || {}).length });
+    const payload = req.body || {};
+    
+    if (Object.keys(payload).length === 0) {
+      return res.status(400).json({ message: 'Request body is empty' });
+    }
+
+    console.log('Forwarding to Google Sheets:', { url: GOOGLE_SHEETS_WEBHOOK_URL, payloadSize: JSON.stringify(payload).length });
     
     const googleRes = await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
       method: 'POST',
