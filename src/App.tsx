@@ -24,6 +24,7 @@ type SubmitPayload = {
   noKK: string;
   kkFileName: string | null;
   kkFileType: string | null;
+  kkFileData: string | null;
   familyMembers: Omit<FamilyMember, 'id'>[];
 };
 
