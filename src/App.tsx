@@ -58,18 +58,36 @@ function App() {
     setKkFile(file);
   };
 
-  const handleSubmit = async () => {
-    const payload: SubmitPayload = {
-      noKK,
-      kkFileName: kkFile?.name ?? null,
-      kkFileType: kkFile?.type ?? null,
-      familyMembers: familyMembers.map(({ id, ...rest }) => rest),
-    };
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const base64String = (reader.result as string).split(',')[1];
+        resolve(base64String);
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
 
+  const handleSubmit = async () => {
     setIsSubmitting(true);
-    setStatusMessage('Submitting data to Google Sheets...');
+    setStatusMessage('Preparing data and uploading file...');
 
     try {
+      let kkFileBase64 = null;
+      if (kkFile) {
+        kkFileBase64 = await fileToBase64(kkFile);
+      }
+
+      const payload = {
+        noKK,
+        kkFileName: kkFile?.name ?? null,
+        kkFileType: kkFile?.type ?? null,
+        kkFileData: kkFileBase64,
+        familyMembers: familyMembers.map(({ id, ...rest }) => rest),
+      };
+
       const response = await fetch('/api/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
