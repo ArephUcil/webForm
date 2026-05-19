@@ -107,8 +107,18 @@ function App() {
                 errorBody = null;
               }
             }
-            const msg = (errorBody && (errorBody.message || errorBody)) || response.statusText || 'Failed to submit data';
-            throw new Error(msg as string);
+            
+            let msg = 'Failed to submit data';
+            if (errorBody) {
+              if (typeof errorBody === 'object') {
+                msg = errorBody.details || errorBody.message || JSON.stringify(errorBody);
+              } else {
+                msg = errorBody;
+              }
+            } else {
+              msg = response.statusText || msg;
+            }
+            throw new Error(msg);
       }
 
       setStatusMessage('Data uploaded to Google Sheets successfully.');
